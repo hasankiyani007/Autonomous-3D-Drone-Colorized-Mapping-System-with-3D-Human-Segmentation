@@ -10,29 +10,24 @@ The system processes LiDAR point clouds at 10 FPS alongside camera feeds for sem
 
 ## System Architecture
 
-The pipeline uses two parallel data streams that converge at the semantic fusion stage:
+The pipeline consists of two sensor streams that both feed into FAST-LIVO2:
 
-1. **LiDAR Stream**: Livox Avia point clouds → FAST-LIVO2 for odometry and mapping
-2. **Camera Stream**: FLIR Blackfly S images → Human Segmentation → Semantic annotations
+1. **LiDAR Stream**: Livox Avia point clouds are processed by FAST-LIVO2 for odometry and mapping
+2. **Camera Stream**: FLIR Blackfly S images are processed through human segmentation, then fed into FAST-LIVO2 for semantic integration
 
 ```
-                    ┌──────────────────┐
-┌──────────────┐    │                  │
-│  Livox Avia  │───▶│    FAST-LIVO2   │
-│   (LiDAR)    │    │  (SLAM/Mapping) │
-└──────────────┘    └────────┬─────────┘
-                             │
-                             ▼
-┌──────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ FLIR Blackfly│    │   YOLO Human     │    │ Semantic Fusion │
-│   (Camera)   │───▶│  Segmentation    │───▶│   (3D + Human)  │
-└──────────────┘    └──────────────────┘    └────────┬────────┘
-                                                    │
-                                                    ▼
-                                            Semantic 3D Map
+┌──────────────┐         ┌──────────────────┐
+│  Livox Avia  │────────▶│                  │
+│   (LiDAR)    │         │                  │
+└──────────────┘         │    FAST-LIVO2   │────────▶ 3D Map
+                         │  (SLAM/Mapping) │
+┌──────────────┐         │                  │         + Semantic
+│ FLIR Blackfly│────────▶│  Human Detection │         Annotation
+│   (Camera)   │         │    Integration   │
+└──────────────┘         └──────────────────┘
 ```
 
-This architecture ensures that raw LiDAR data flows directly into FAST-LIVO2 for accurate mapping while camera imagery is processed separately for human detection. The semantic fusion node then combines both outputs to produce annotated 3D maps with human location data.
+This architecture ensures that raw LiDAR data flows into FAST-LIVO2 for accurate mapping while camera imagery is processed through human segmentation and then integrated into FAST-LIVO2 for semantic understanding. The result is an annotated 3D map with human location data.
 
 ## Hardware Setup
 
